@@ -62,10 +62,10 @@ def fetch_data_stock(stock: str, bgn_date: str, end_date: str, freq: str, cols=N
         date = file.split('.')[-1]
         df = pd.read_csv(file_path, sep=' ')
         df.time = df.time.apply(lambda x: ''.join(x.split(':')))
-        times = fetch_times(freq)
-        df_freq = df[df.time.isin(times[1:])].copy().reset_index(drop=True)
-        df_freq.loc[:, df_freq.columns[1:]] = np.nan
         if freq != '1':
+            times = fetch_times(freq)
+            df_freq = df[df.time.isin(times[1:])].copy().reset_index(drop=True)
+            df_freq.loc[:, df_freq.columns[1:]] = np.nan
             for idx, time in enumerate(times[1:]):
                 tmpdf = df[(df.time > times[idx]) & (df.time <= time)]
                 for col in ['trade_count', 'trade_volume', 'hid_vol', 'buy_vol', 'sell_vol', 'unsided_vol']:
@@ -79,9 +79,9 @@ def fetch_data_stock(stock: str, bgn_date: str, end_date: str, freq: str, cols=N
                 df_freq.loc[idx, 'time'] = pd.to_datetime(date + df_freq.loc[idx, 'time'])
             data = pd.concat([data, df_freq])
         else:
-            merged = pd.merge(df, df_freq, on='time')
-            merged['time'] = pd.to_datetime(merged['time'].apply(lambda x: date + x))
-            data = pd.concat([data, merged])
+            filtered = df[(df.time > '090000') & (df.time <= '160000')]
+            filtered['time'] = pd.to_datetime(filtered['time'].apply(lambda x: date + x))
+            data = pd.concat([data, filtered])
     data = data.sort_values(by='time', ascending=True).reset_index(drop=True)
     return data
 
